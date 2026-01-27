@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Tarot Card Reading</title>
+<style>
+  body {
+    font-family: serif;
+    background: #111;
+    color: #f5f5f5;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  button {
+    margin: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .card {
+    border: 1px solid #aaa;
+    padding: 1rem;
+    margin: 0.5rem;
+    width: 180px;
+    background: #222;
+  }
+
+  .title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tarot Reading</h1>
+
+<button onclick="drawCards(1)">1-Card Pull</button>
+<button onclick="drawCards(3)">3-Card Spread</button>
+<button onclick="drawCelticCross()">Celtic Cross</button>
+
+<div class="cards" id="cards"></div>
+
+<script>
+const tarotDeck = [
+  // Major Arcana
+  "The Fool","The Magician","The High Priestess","The Empress","The Emperor",
+  "The Hierophant","The Lovers","The Chariot","Strength","The Hermit",
+  "Wheel of Fortune","Justice","The Hanged Man","Death","Temperance",
+  "The Devil","The Tower","The Star","The Moon","The Sun",
+  "Judgement","The World",
+
+  // Wands
+  ...["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"]
+    .map(v => `${v} of Wands`),
+  ...["Page","Knight","Queen","King"]
+    .map(v => `${v} of Wands`),
+
+  // Cups
+  ...["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"]
+    .map(v => `${v} of Cups`),
+  ...["Page","Knight","Queen","King"]
+    .map(v => `${v} of Cups`),
+
+  // Swords
+  ...["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"]
+    .map(v => `${v} of Swords`),
+  ...["Page","Knight","Queen","King"]
+    .map(v => `${v} of Swords`),
+
+  // Pentacles
+  ...["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"]
+    .map(v => `${v} of Pentacles`),
+  ...["Page","Knight","Queen","King"]
+    .map(v => `${v} of Pentacles`)
+];
+
+function shuffle(deck) {
+  const shuffled = [...deck];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function drawCards(count) {
+  const container = document.getElementById("cards");
+  container.innerHTML = "";
+
+  const shuffled = shuffle(tarotDeck);
+  const drawn = shuffled.slice(0, count);
+
+  drawn.forEach((card, i) => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="title">Card ${i + 1}</div>
+      <div>${card}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function drawCelticCross() {
+  const container = document.getElementById("cards");
+  container.innerHTML = "";
+
+  const positions = [
+    "Present","Challenge","Past","Future","Above",
+    "Below","Advice","External Influences","Hopes/Fears","Outcome"
+  ];
+
+  const shuffled = shuffle(tarotDeck);
+  const drawn = shuffled.slice(0, 10);
+
+  drawn.forEach((card, i) => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="title">${positions[i]}</div>
+      <div>${card}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+</script>
+
+</body>
+</html>
