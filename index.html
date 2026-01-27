@@ -1,87 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Tarot</title>
-
+<meta charset="UTF-8">
+<title>Tarot App Test</title>
 <style>
   body {
-    background: radial-gradient(circle, #0b0b0f, #000);
-    color: #eee;
-    font-family: serif;
-    text-align: center;
-    padding: 2rem;
+    font-family: sans-serif;
+    background: #1a1a1a;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
   }
 
-  h1 {
-    letter-spacing: 0.15em;
-    font-weight: normal;
+  #card-container {
+    width: 200px;
+    height: 350px;
+    perspective: 1000px;
+    margin: 20px;
+  }
+
+  #card {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    transition: transform 0.6s ease;
+  }
+
+  /* Shuffle animation */
+  .shuffle {
+    animation: shuffleAnim 0.6s;
+  }
+
+  @keyframes shuffleAnim {
+    0% { transform: rotate(0deg) translateX(0px); }
+    25% { transform: rotate(-5deg) translateX(-10px); }
+    50% { transform: rotate(5deg) translateX(10px); }
+    75% { transform: rotate(-3deg) translateX(-5px); }
+    100% { transform: rotate(0deg) translateX(0px); }
   }
 
   button {
-    background: none;
-    border: 1px solid #888;
-    color: #eee;
-    padding: 0.6rem 1.4rem;
-    margin: 0.5rem;
-    cursor: pointer;
+    margin-top: 20px;
+    padding: 10px 20px;
+    border:none;
+    border-radius:5px;
+    background: #444;
+    color:white;
+    cursor:pointer;
+    font-size:16px;
   }
 
-  .cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 2rem;
-  }
-
-  .card {
-    margin: 0.8rem;
-  }
-
-  img {
-    width: 160px;
-    box-shadow: 0 0 25px rgba(255,255,255,0.15);
+  button:hover {
+    background: #666;
   }
 </style>
 </head>
-
 <body>
 
-<h1>TAROT</h1>
+<h1>Tarot App Test</h1>
+<div id="card-container">
+  <div id="card"></div>
+</div>
 
-<button onclick="draw(1)">One Card</button>
-<button onclick="draw(3)">Three Cards</button>
-<button onclick="drawCeltic()">Celtic Cross</button>
-
-<div class="cards" id="cards"></div>
+<button id="draw-card">Draw a Card</button>
 
 <script>
-const deck = [
-  { name: "The Fool", img: "cards/the_fool.jpg" },
-  { name: "The Magician", img: "cards/the_magician.jpg" },
-  { name: "The High Priestess", img: "cards/the_high_priestess.jpg" },
-  // continue for all 78 cards
-];
+  // 6 test cards
+  const deck = [
+    { name: "The Fool", img: "cards/major/00_Fool.jpg" },
+    { name: "The Magician", img: "cards/major/01_Magician.jpg" },
+    { name: "High Priestess", img: "cards/major/02_High_Priestess.jpg" },
+    { name: "The Empress", img: "cards/major/03_Empress.jpg" },
+    { name: "The Emperor", img: "cards/major/04_Emperor.jpg" },
+    { name: "The Star", img: "cards/major/17_Star.jpg" }
+  ];
 
-function shuffle(array) {
-  return [...array].sort(() => Math.random() - 0.5);
-}
+  const cardEl = document.getElementById("card");
+  const drawBtn = document.getElementById("draw-card");
 
-function draw(count) {
-  const container = document.getElementById("cards");
-  container.innerHTML = "";
+  function shuffleDeck(arr) {
+    // Fisher–Yates shuffle
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
 
-  shuffle(deck).slice(0, count).forEach(card => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `<img src="${card.img}" alt="${card.name}">`;
-    container.appendChild(div);
-  });
-}
+  function drawCard() {
+    // Add shuffle animation
+    cardEl.classList.add("shuffle");
 
-function drawCeltic() {
-  draw(10);
-}
+    // Wait for animation to complete before showing new card
+    setTimeout(() => {
+      const shuffled = shuffleDeck([...deck]);
+      const card = shuffled[0];
+      cardEl.style.backgroundImage = `url(${card.img})`;
+      cardEl.title = card.name; // optional tooltip
+      cardEl.classList.remove("shuffle");
+    }, 600); // matches animation duration
+  }
+
+  drawBtn.addEventListener("click", drawCard);
+
+  // Optional: draw a card immediately on load
+  drawCard();
 </script>
 
 </body>
