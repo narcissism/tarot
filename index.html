@@ -167,4 +167,92 @@ const deck = [
   { name: "Ten of Pentacles", img: "cards/pentacles/pentacles10.jpg" },
   { name: "Page of Pentacles", img: "cards/pentacles/pentacles11.jpg" },
   { name: "Knight of Pentacles", img: "cards/pentacles/pentacles12.jpg" },
-  { name: "Queen of Pentacles", i
+  { name: "Queen of Pentacles", img: "cards/pentacles/pentacles13.jpg" },
+  { name: "King of Pentacles", img: "cards/pentacles/pentacles14.jpg" }
+];
+
+const CARD_BACK = "cards/back.jpg";
+
+/* =========================
+   UTILS
+========================= */
+
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* =========================
+   SPREAD POSITIONS
+========================= */
+
+const spreads = {
+  single: [{ x: 0, y: 0 }],
+  three: [
+    { x: -160, y: 0 },
+    { x: 0, y: 0 },
+    { x: 160, y: 0 }
+  ],
+  celtic: [
+    { x: 0, y: 0 },      // 1
+    { x: 0, y: 0 },      // 2 crossing
+    { x: -100, y: -120 }, // 3
+    { x: 100, y: -120 },  // 4
+    { x: -100, y: 120 },  // 5
+    { x: 100, y: 120 },   // 6
+    { x: 250, y: -180 },  // 7
+    { x: 250, y: -90 },   // 8
+    { x: 250, y: 0 },     // 9
+    { x: 250, y: 90 }     // 10
+  ]
+};
+
+/* =========================
+   MAIN FUNCTIONS
+========================= */
+
+const container = document.getElementById("fan-container");
+let currentSpread = "single";
+
+function dealSpread(type) {
+  container.innerHTML = "";
+  const positions = spreads[type];
+  const shuffled = shuffle(deck);
+
+  positions.forEach((pos, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.front = shuffled[i % shuffled.length].img;
+    card.style.backgroundImage = `url(${CARD_BACK})`;
+    card.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+    if (type === "celtic" && i === 1) card.style.transform += " rotate(90deg)";
+    card.addEventListener("click", () => {
+      card.style.backgroundImage = `url(${card.dataset.front})`;
+    });
+    container.appendChild(card);
+  });
+}
+
+/* =========================
+   BUTTON EVENTS
+========================= */
+
+document.getElementById("draw").addEventListener("click", () => {
+  currentSpread = "single";
+  dealSpread("single");
+});
+
+document.querySelectorAll("#controls button[data-spread]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentSpread = btn.dataset.spread;
+    dealSpread(currentSpread);
+  });
+});
+</script>
+
+</body>
+</html>
