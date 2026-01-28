@@ -122,7 +122,7 @@ function fanShuffle() {
     const card = document.createElement("div");
     card.className = "card";
     card.style.backgroundImage = `url(${CARD_BACK})`;
-    card.style.opacity = 0;
+    card.style.opacity = 1;
     card.style.transform = "translate(0px, 0px)";
 
     container.appendChild(card);
@@ -138,7 +138,7 @@ function fanShuffle() {
   // pause, then collapse
   setTimeout(() => {
     cards.forEach(card => {
-      card.style.opacity = 0;
+      card.style.opacity = 1;
       card.style.transform = "translate(0px, 0px)";
     });
 
