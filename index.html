@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tarot</title>
+<title>Tarot Solitaire Shuffle</title>
 
 <style>
   body {
@@ -25,8 +25,8 @@
 
   #fan-container {
     position: relative;
-    width: 220px;
-    height: 360px;
+    width: 240px;
+    height: 380px;
     perspective: 1200px;
   }
 
@@ -41,10 +41,6 @@
     transition:
       transform 0.6s ease,
       opacity 0.6s ease;
-  }
-
-  .fan-card {
-    opacity: 0;
   }
 
   button {
@@ -73,9 +69,9 @@
 <button id="draw">Draw Card</button>
 
 <script>
-/* ------------------------
-   DECK (6 test cards)
-------------------------- */
+/* =========================
+   DECK (6 TEST CARDS)
+========================= */
 
 const deck = [
   { name: "The Fool", img: "cards/major/00_Fool.jpg" },
@@ -86,17 +82,18 @@ const deck = [
   { name: "The Star", img: "cards/major/17_Star.jpg" }
 ];
 
-/* ------------------------
+const CARD_BACK = "cards/back.jpg";
+
+/* =========================
    SETUP
-------------------------- */
+========================= */
 
 const container = document.getElementById("fan-container");
 const drawBtn = document.getElementById("draw");
-const CARD_BACK = "cards/back.jpg";
 
-/* ------------------------
-   UTILITIES
-------------------------- */
+/* =========================
+   UTIL
+========================= */
 
 function shuffle(array) {
   const arr = [...array];
@@ -107,56 +104,51 @@ function shuffle(array) {
   return arr;
 }
 
-/* ------------------------
-   FAN SHUFFLE ANIMATION
-------------------------- */
+/* =========================
+   SOLITAIRE-STYLE CASCADE
+========================= */
 
-<script>
 function fanShuffle() {
   container.innerHTML = "";
 
-  const fanCount = 12;              // how many visible cards
-  const offsetX = 14;               // horizontal overlap
-  const offsetY = 18;               // vertical overlap
-  const delay = 70;                 // ms between cards
+  const fanCount = 14;     // number of visible cards
+  const offsetX = 14;     // horizontal overlap
+  const offsetY = 18;     // vertical overlap
+  const delay = 70;       // ms between cards
 
   const cards = [];
 
-  // create cascading cards
   for (let i = 0; i < fanCount; i++) {
     const card = document.createElement("div");
     card.className = "card";
     card.style.backgroundImage = `url(${CARD_BACK})`;
     card.style.opacity = 0;
-    card.style.transform = "translate(0, 0)";
+    card.style.transform = "translate(0px, 0px)";
 
     container.appendChild(card);
     cards.push(card);
 
     setTimeout(() => {
       card.style.opacity = 1;
-      card.style.transform = `
-        translate(${i * offsetX}px, ${i * offsetY}px)
-      `;
+      card.style.transform =
+        `translate(${i * offsetX}px, ${i * offsetY}px)`;
     }, i * delay);
   }
 
-  // pause, then collapse stack
+  // pause, then collapse
   setTimeout(() => {
     cards.forEach(card => {
       card.style.opacity = 0;
-      card.style.transform = "translate(0, 0)";
+      card.style.transform = "translate(0px, 0px)";
     });
 
     setTimeout(revealCard, 500);
   }, fanCount * delay + 600);
 }
-</script>
 
-
-/* ------------------------
+/* =========================
    REVEAL CARD
-------------------------- */
+========================= */
 
 function revealCard() {
   container.innerHTML = "";
@@ -169,13 +161,13 @@ function revealCard() {
   container.appendChild(card);
 }
 
-/* ------------------------
+/* =========================
    EVENTS
-------------------------- */
+========================= */
 
 drawBtn.addEventListener("click", fanShuffle);
 
-// optional: draw once on load
+// optional initial draw
 fanShuffle();
 </script>
 
