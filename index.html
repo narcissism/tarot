@@ -57,6 +57,26 @@
   button:hover {
     background: #333;
   }
+  
+  #spread-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+#spread-controls button {
+  padding: 8px 16px;
+  background: #222;
+  color: #eee;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#spread-controls button:hover {
+  background: #333;
+}
+
 </style>
 </head>
 
@@ -67,11 +87,45 @@
 <div id="fan-container"></div>
 
 <button id="draw">Draw Card</button>
+  <div id="spread-controls">
+  <button data-spread="single">Single Card Pull</button>
+  <button data-spread="three">Past Present Future</button>
+  <button data-spread="celtic">Celtic Cross</button>
+</div>
+
 
 <script>
 /* =========================
    DECK (6 TEST CARDS)
 ========================= */
+
+  let currentSpread = "single";
+
+const spreads = {
+  single: [
+    { x: 0, y: 0 }
+  ],
+
+  three: [
+    { x: -140, y: 0 }, // past
+    { x: 0,    y: 0 }, // present
+    { x: 140,  y: 0 }  // future
+  ],
+
+  celtic: [
+    { x: 0,   y: 0 },     // 1
+    { x: 0,   y: 0 },     // 2 (crossing)
+    { x: 0,   y: -180 },  // 3
+    { x: 0,   y: 180 },   // 4
+    { x: -180,y: 0 },     // 5
+    { x: 180, y: 0 },     // 6
+
+    { x: 340, y: 200 },   // 7
+    { x: 340, y: 80 },    // 8
+    { x: 340, y: -40 },   // 9
+    { x: 340, y: -160 }   // 10
+  ]
+};
 
 const deck = [
   { name: "The Fool", img: "cards/major/00_Fool.jpg" },
@@ -145,21 +199,39 @@ function fanShuffle() {
     setTimeout(revealCard, 500);
   }, fanCount * delay + 600);
 }
+setTimeout(() => {
+  dealSpread(currentSpread);
+}, fanCount * delay + 600);
 
 /* =========================
    REVEAL CARD
 ========================= */
 
-function revealCard() {
+function dealSpread(type) {
   container.innerHTML = "";
 
-  const chosen = shuffle(deck)[0];
-  const card = document.createElement("div");
-  card.className = "card";
-  card.style.backgroundImage = `url(${chosen.img})`;
+  const positions = spreads[type];
+  const shuffled = shuffle(deck);
 
-  container.appendChild(card);
+  positions.forEach((pos, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.backgroundImage = `url(${shuffled[i].img})`;
+
+    // center reference
+    card.style.transform = `
+      translate(${pos.x}px, ${pos.y}px)
+    `;
+
+    // crossing card (Celtic Cross card 2)
+    if (type === "celtic" && i === 1) {
+      card.style.transform += " rotate(90deg)";
+    }
+
+    container.appendChild(card);
+  });
 }
+
 
 /* =========================
    EVENTS
@@ -169,6 +241,15 @@ drawBtn.addEventListener("click", fanShuffle);
 
 // optional initial draw
 fanShuffle();
+
+  document.querySelectorAll("#spread-controls button")
+  .forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentSpread = btn.dataset.spread;
+      fanShuffle();
+    });
+  });
+
 </script>
 
 </body>
