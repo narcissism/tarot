@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tarot</title>
+<title>Tarot Solitaire Shuffle</title>
 
 <style>
   body {
@@ -12,112 +12,81 @@
     color: #eee;
     font-family: serif;
     display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+
+  #controls {
+    width: 200px;
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    padding: 20px;
+    background: #222;
+    border-right: 1px solid #444;
   }
 
   h1 {
     font-weight: normal;
     letter-spacing: 0.05em;
     margin-bottom: 20px;
-  }
-
-  #fan-container {
-    position: relative;
-    width: 240px;
-    height: 380px;
-    perspective: 1200px;
-  }
-
-  .card {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    border-radius: 10px;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.7);
-    transition:
-      transform 0.6s ease,
-      opacity 0.6s ease;
+    text-align: center;
   }
 
   button {
-    margin-top: 30px;
-    padding: 10px 24px;
-    background: #222;
+    margin: 10px 0;
+    padding: 10px 12px;
+    background: #333;
     color: #eee;
-    border: 1px solid #444;
+    border: 1px solid #555;
     border-radius: 6px;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
   }
 
   button:hover {
-    background: #333;
+    background: #444;
   }
-  
-  #spread-controls {
+
+  #fan-container {
+    flex: 1;
+    position: relative;
     display: flex;
-    gap: 12px;
-    margin-top: 20px;
+    align-items: center;
+    justify-content: center;
   }
 
-  #spread-controls button {
-    padding: 8px 16px;
-    background: #222;
-    color: #eee;
-    border: 1px solid #444;
-    border-radius: 6px;
+  .card {
+    position: absolute;
+    width: 140px;
+    height: 220px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+    transition: transform 0.5s ease, opacity 0.5s ease;
     cursor: pointer;
-  }
-
-  #spread-controls button:hover {
-    background: #333;
   }
 </style>
 </head>
 
 <body>
 
-<h1>Tarot</h1>
-
-<div id="fan-container"></div>
-
-<button id="draw">Draw Card</button>
-<div id="spread-controls">
-  <button data-spread="single">Single Card Pull</button>
-  <button data-spread="three">Past Present Future</button>
+<div id="controls">
+  <h1>Tarot</h1>
+  <button id="draw">Single Draw</button>
+  <button data-spread="three">Past-Present-Future</button>
   <button data-spread="celtic">Celtic Cross</button>
 </div>
 
+<div id="fan-container"></div>
 
 <script>
 /* =========================
-   DECK
+   FULL 78-CARD DECK
 ========================= */
 
-let currentSpread = "single";
-
-const spreads = {
-  single: [{ x: 0, y: 0 }],
-  three: [
-    { x: -140, y: 0 },
-    { x: 0,    y: 0 },
-    { x: 140,  y: 0 }
-  ],
-  celtic: [
-    { x: 0,   y: 0 }, { x: 0,   y: 0 },
-    { x: 0,   y: -180 }, { x: 0,   y: 180 },
-    { x: -180,y: 0 }, { x: 180, y: 0 },
-    { x: 340, y: 200 }, { x: 340, y: 80 },
-    { x: 340, y: -40 }, { x: 340, y: -160 }
-  ]
-};
-
 const deck = [
-  // ===== Major Arcana =====
+  // Major Arcana
   { name: "The Fool", img: "cards/major/00_Fool.jpg" },
   { name: "The Magician", img: "cards/major/01_Magician.jpg" },
   { name: "The High Priestess", img: "cards/major/02_High_Priestess.jpg" },
@@ -140,8 +109,7 @@ const deck = [
   { name: "The Sun", img: "cards/major/19_Sun.jpg" },
   { name: "Judgement", img: "cards/major/20_Judgement.jpg" },
   { name: "The World", img: "cards/major/21_World.jpg" },
-
-  // ===== Cups =====
+  // Cups
   { name: "Ace of Cups", img: "cards/cups/cups01.jpg" },
   { name: "Two of Cups", img: "cards/cups/cups02.jpg" },
   { name: "Three of Cups", img: "cards/cups/cups03.jpg" },
@@ -156,8 +124,7 @@ const deck = [
   { name: "Knight of Cups", img: "cards/cups/cups12.jpg" },
   { name: "Queen of Cups", img: "cards/cups/cups13.jpg" },
   { name: "King of Cups", img: "cards/cups/cups14.jpg" },
-
-  // ===== Wands =====
+  // Wands
   { name: "Ace of Wands", img: "cards/wands/wands01.jpg" },
   { name: "Two of Wands", img: "cards/wands/wands02.jpg" },
   { name: "Three of Wands", img: "cards/wands/wands03.jpg" },
@@ -172,8 +139,7 @@ const deck = [
   { name: "Knight of Wands", img: "cards/wands/wands12.jpg" },
   { name: "Queen of Wands", img: "cards/wands/wands13.jpg" },
   { name: "King of Wands", img: "cards/wands/wands14.jpg" },
-
-  // ===== Swords =====
+  // Swords
   { name: "Ace of Swords", img: "cards/swords/swords01.jpg" },
   { name: "Two of Swords", img: "cards/swords/swords02.jpg" },
   { name: "Three of Swords", img: "cards/swords/swords03.jpg" },
@@ -188,8 +154,7 @@ const deck = [
   { name: "Knight of Swords", img: "cards/swords/swords12.jpg" },
   { name: "Queen of Swords", img: "cards/swords/swords13.jpg" },
   { name: "King of Swords", img: "cards/swords/swords14.jpg" },
-
-  // ===== Pentacles =====
+  // Pentacles
   { name: "Ace of Pentacles", img: "cards/pentacles/pentacles01.jpg" },
   { name: "Two of Pentacles", img: "cards/pentacles/pentacles02.jpg" },
   { name: "Three of Pentacles", img: "cards/pentacles/pentacles03.jpg" },
@@ -202,108 +167,4 @@ const deck = [
   { name: "Ten of Pentacles", img: "cards/pentacles/pentacles10.jpg" },
   { name: "Page of Pentacles", img: "cards/pentacles/pentacles11.jpg" },
   { name: "Knight of Pentacles", img: "cards/pentacles/pentacles12.jpg" },
-  { name: "Queen of Pentacles", img: "cards/pentacles/pentacles13.jpg" },
-  { name: "King of Pentacles", img: "cards/pentacles/pentacles14.jpg" }
-];
-
-const CARD_BACK = "cards/back.jpg";
-
-/* =========================
-   SETUP
-========================= */
-
-const container = document.getElementById("fan-container");
-const drawBtn = document.getElementById("draw");
-
-/* =========================
-   UTIL
-========================= */
-
-function shuffle(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-/* =========================
-   FAN SHUFFLE
-========================= */
-
-function fanShuffle() {
-  container.innerHTML = "";
-
-  const fanCount = 14;
-  const offsetX = 14;
-  const offsetY = 18;
-  const delay = 70;
-
-  const cards = [];
-
-  for (let i = 0; i < fanCount; i++) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.backgroundImage = `url(${CARD_BACK})`;
-    card.style.opacity = 1;
-    card.style.transform = "translate(0px, 0px)";
-    container.appendChild(card);
-    cards.push(card);
-
-    setTimeout(() => {
-      card.style.transform = `translate(${i * offsetX}px, ${i * offsetY}px)`;
-    }, i * delay);
-  }
-
-  // collapse fan and reveal spread
-  setTimeout(() => {
-    cards.forEach(card => card.style.transform = "translate(0px, 0px)");
-    setTimeout(() => dealSpread(currentSpread), 500);
-  }, fanCount * delay + 600);
-}
-
-/* =========================
-   DEAL SPREAD
-========================= */
-
-function dealSpread(type) {
-  container.innerHTML = "";
-
-  const positions = spreads[type];
-  const shuffled = shuffle(deck);
-
-  positions.forEach((pos, i) => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.backgroundImage = `url(${shuffled[i % shuffled.length].img})`;
-    card.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-
-    if (type === "celtic" && i === 1) {
-      card.style.transform += " rotate(90deg)";
-    }
-
-    container.appendChild(card);
-  });
-}
-
-/* =========================
-   EVENTS
-========================= */
-
-drawBtn.addEventListener("click", fanShuffle);
-
-document.querySelectorAll("#spread-controls button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    currentSpread = btn.dataset.spread;
-    fanShuffle();
-  });
-});
-
-// initial fan shuffle
-fanShuffle();
-
-</script>
-
-</body>
-</html>
+  { name: "Queen of Pentacles", i
