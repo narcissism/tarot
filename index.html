@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tarot Fan Shuffle</title>
+<title>Tarot</title>
 
 <style>
   body {
@@ -111,41 +111,48 @@ function shuffle(array) {
    FAN SHUFFLE ANIMATION
 ------------------------- */
 
+<script>
 function fanShuffle() {
   container.innerHTML = "";
 
-  const fanCount = 7;
-  const spread = 42;
+  const fanCount = 12;              // how many visible cards
+  const offsetX = 14;               // horizontal overlap
+  const offsetY = 18;               // vertical overlap
+  const delay = 70;                 // ms between cards
 
+  const cards = [];
+
+  // create cascading cards
   for (let i = 0; i < fanCount; i++) {
     const card = document.createElement("div");
-    card.className = "card fan-card";
+    card.className = "card";
     card.style.backgroundImage = `url(${CARD_BACK})`;
-
-    const angle = -spread / 2 + (spread / (fanCount - 1)) * i;
-    const offset = Math.abs(i - (fanCount - 1) / 2) * 9;
+    card.style.opacity = 0;
+    card.style.transform = "translate(0, 0)";
 
     container.appendChild(card);
+    cards.push(card);
 
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       card.style.opacity = 1;
       card.style.transform = `
-        rotate(${angle}deg)
-        translateY(-${offset}px)
+        translate(${i * offsetX}px, ${i * offsetY}px)
       `;
-    });
+    }, i * delay);
   }
 
-  // pause, then collapse
+  // pause, then collapse stack
   setTimeout(() => {
-    document.querySelectorAll(".fan-card").forEach(card => {
+    cards.forEach(card => {
       card.style.opacity = 0;
-      card.style.transform = "rotate(0deg) translateY(0)";
+      card.style.transform = "translate(0, 0)";
     });
 
     setTimeout(revealCard, 500);
-  }, 800);
+  }, fanCount * delay + 600);
 }
+</script>
+
 
 /* ------------------------
    REVEAL CARD
