@@ -1,0 +1,39 @@
+{
+  "00_Fool": {
+    "name": "The Fool",
+    "upright": "New beginnings, adventure, innocence.",
+    "reversed": "Recklessness, hesitation, foolishness.",
+    "context": "Near The Magician: readiness to take a leap with skill."
+  },
+  "01_Magician": {
+    "name": "The Magician",
+    "upright": "Skill, manifestation, resourcefulness.",
+    "reversed": "Manipulation, trickery, unused potential."
+  },
+  "02_High_Priestess": {
+    "name": "The High Priestess",
+    "upright": "Intuition, wisdom, mystery.",
+    "reversed": "Secrets, withdrawal, superficiality."
+  },
+  "Cups01": {
+    "name": "Ace of Cups",
+    "upright": "Emotional renewal, new relationships.",
+    "reversed": "Blocked emotions, disappointment."
+  },
+  "Swords01": {
+    "name": "Ace of Swords",
+    "upright": "Clarity, breakthrough, mental focus.",
+    "reversed": "Confusion, miscommunication."
+  },
+  "Pents01": {
+    "name": "Ace of Pentacles",
+    "upright": "New material opportunity, prosperity.",
+    "reversed": "Missed opportunity, instability."
+  },
+  "Wands01": {
+    "name": "Ace of Wands",
+    "upright": "Inspiration, energy, growth.",
+    "reversed": "Delays, lack of direction."
+  }
+  // Add all remaining cards similarly
+}
