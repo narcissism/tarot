@@ -93,7 +93,6 @@ button:hover { background: #444; }
 
 <div id="fan-container"></div>
 
-<!-- sounds -->
 <audio id="shuffleSound" src="sounds/shuffle.mp3" preload="auto"></audio>
 <audio id="flipSound" src="sounds/flip.mp3" preload="auto"></audio>
 
@@ -106,16 +105,29 @@ const CARD_BACK = "cards/back.jpg";
 let workingDeck = [];
 let clarifyIndex = 0;
 let lastSpreadRightEdge = 0;
+let currentSpread = null;
+let audioUnlocked = false;
+
+/* ===== AUDIO UNLOCK ===== */
+function unlockAudio() {
+  if (audioUnlocked) return;
+  shuffleSound.play().catch(()=>{});
+  shuffleSound.pause();
+  flipSound.play().catch(()=>{});
+  flipSound.pause();
+  audioUnlocked = true;
+}
+
+function play(sound) {
+  unlockAudio();
+  sound.currentTime = 0;
+  sound.volume = 0.4;
+  sound.play().catch(()=>{});
+}
 
 /* ===== SHUFFLE ===== */
 function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
-}
-
-function play(sound) {
-  sound.currentTime = 0;
-  sound.volume = 0.35;
-  sound.play().catch(()=>{});
 }
 
 /* ===== SPREAD POSITIONS ===== */
@@ -133,26 +145,30 @@ const spreads = {
 
   celtic: [
     { x: 420, y: 260 }, // 1 center
-    { x: 420, y: 300, cross: true }, // 2 crossing LOWER HALF
-    { x: 420, y: 520 }, // 3 below
+    { x: 420, y: 290, cross: true }, // 2 horizontal crossing
+    { x: 420, y: 500 }, // 3 below
     { x: 260, y: 260 }, // 4 left
     { x: 420, y: 40  }, // 5 above
     { x: 580, y: 260 }, // 6 right
 
-    // Staff (moved UP to align with card 5)
-    { x: 760, y: 260 }, // 7
-    { x: 760, y: 140 }, // 8
-    { x: 760, y: 20  }, // 9
-    { x: 760, y: -100 } // 10
+    // Staff (fully visible, no overlap)
+    { x: 760, y: 420 }, // 7
+    { x: 760, y: 300 }, // 8
+    { x: 760, y: 180 }, // 9
+    { x: 760, y: 60  }  // 10
   ]
 };
 
 /* ===== CARD CREATION ===== */
 
-function createCard(img, z) {
+function createCard(img, z, rotate=false) {
   const card = document.createElement("div");
   card.className = "card";
   card.style.zIndex = z;
+
+  if (rotate) {
+    card.style.transform = "rotate(90deg)";
+  }
 
   const inner = document.createElement("div");
   inner.className = "card-inner";
@@ -180,31 +196,27 @@ function createCard(img, z) {
 /* ===== DEAL ===== */
 
 function deal(type) {
+  unlockAudio();
   container.innerHTML = "";
   play(shuffleSound);
 
+  currentSpread = type;
   workingDeck = shuffle(deck);
   clarifyIndex = spreads[type].length;
-
-  const positions = spreads[type];
-
   lastSpreadRightEdge = 0;
 
-  positions.forEach((pos, i) => {
-    const card = createCard(workingDeck[i].img, 1);
+  spreads[type].forEach((pos, i) => {
+    const isCross = pos.cross === true;
+    const card = createCard(
+      workingDeck[i].img,
+      isCross ? 3 : i === 0 ? 2 : 1,
+      isCross
+    );
 
     card.style.left = pos.x + "px";
     card.style.top = pos.y + "px";
 
-    if (type === "celtic") {
-      if (i === 1) card.style.zIndex = 3; // crossing
-      if (i === 0) card.style.zIndex = 2; // center
-    } else {
-      card.style.zIndex = i + 1;
-    }
-
     container.appendChild(card);
-
     lastSpreadRightEdge = Math.max(lastSpreadRightEdge, pos.x);
   });
 }
@@ -212,10 +224,8 @@ function deal(type) {
 /* ===== RESHUFFLE ===== */
 
 function reshuffle() {
-  container.innerHTML = "";
-  workingDeck = shuffle(deck);
-  clarifyIndex = 0;
-  play(shuffleSound);
+  if (!currentSpread) return;
+  deal(currentSpread);
 }
 
 /* ===== CLARIFY ===== */
@@ -223,10 +233,14 @@ function reshuffle() {
 function clarify() {
   if (!workingDeck.length || clarifyIndex >= workingDeck.length) return;
 
-  const x = lastSpreadRightEdge + 180 + (clarifyIndex * 4);
+  const x = lastSpreadRightEdge + 180 + (clarifyIndex * 6);
   const y = 260;
 
-  const card = createCard(workingDeck[clarifyIndex].img, clarifyIndex + 10);
+  const card = createCard(
+    workingDeck[clarifyIndex].img,
+    clarifyIndex + 10
+  );
+
   card.style.left = x + "px";
   card.style.top = y + "px";
 
