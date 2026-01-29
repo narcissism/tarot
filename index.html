@@ -19,6 +19,7 @@ body {
   padding: 20px;
   background: #222;
   border-right: 1px solid #444;
+  z-index: 10;
 }
 
 button {
@@ -47,6 +48,7 @@ button:hover { background: #444; }
   width: 140px;
   height: 220px;
   perspective: 1000px;
+  cursor: pointer;
 }
 
 .card-inner {
@@ -73,7 +75,9 @@ button:hover { background: #444; }
   box-shadow: 0 10px 24px rgba(0,0,0,0.7);
 }
 
-.front { transform: rotateY(180deg); }
+.front {
+  transform: rotateY(180deg);
+}
 </style>
 </head>
 
@@ -102,30 +106,33 @@ function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-/* ===== SPREAD POSITIONS ===== */
+/* ===== SPREAD POSITIONS (CORRECTED) ===== */
 
 const spreads = {
   single: [
-    { x: 400, y: 250 }
+    { x: 420, y: 260 }
   ],
 
   three: [
-    { x: 260, y: 250 },
-    { x: 420, y: 250 },
-    { x: 580, y: 250 }
+    { x: 260, y: 260 },
+    { x: 420, y: 260 },
+    { x: 580, y: 260 }
   ],
 
+  // Matches your description EXACTLY
   celtic: [
-    { x: 360, y: 250 }, // 1 center
-    { x: 360, y: 250, cross:true }, // 2 crossing
-    { x: 360, y: 90  }, // 3 above
-    { x: 360, y: 410 }, // 4 below
-    { x: 200, y: 250 }, // 5 left
-    { x: 520, y: 250 }, // 6 right
-    { x: 700, y: 430 }, // 7
-    { x: 700, y: 320 }, // 8
-    { x: 700, y: 210 }, // 9
-    { x: 700, y: 100 }  // 10
+    { x: 420, y: 260 }, // 1 center
+    { x: 420, y: 260, cross: true }, // 2 crossing (overlaps only)
+    { x: 420, y: 520 }, // 3 below
+    { x: 260, y: 260 }, // 4 left
+    { x: 420, y: 40  }, // 5 above
+    { x: 580, y: 260 }, // 6 right
+
+    // Staff (right side, bottom to top)
+    { x: 760, y: 560 }, // 7
+    { x: 760, y: 400 }, // 8
+    { x: 760, y: 240 }, // 9
+    { x: 760, y: 80  }  // 10
   ]
 };
 
@@ -133,7 +140,9 @@ const spreads = {
 
 function deal(type) {
   container.innerHTML = "";
+
   shuffleSound.currentTime = 0;
+  shuffleSound.volume = 0.3;
   shuffleSound.play();
 
   const positions = spreads[type];
@@ -144,9 +153,15 @@ function deal(type) {
     card.className = "card";
     card.style.left = pos.x + "px";
     card.style.top = pos.y + "px";
-    card.style.zIndex = i + 1;
 
-    if (pos.cross) card.style.transform = "rotate(90deg)";
+    // z-index control (prevents click bugs)
+    if (type === "celtic") {
+      if (i === 1) card.style.zIndex = 3;       // crossing card
+      else if (i === 0) card.style.zIndex = 2;  // center under it
+      else card.style.zIndex = 1;
+    } else {
+      card.style.zIndex = i + 1;
+    }
 
     const inner = document.createElement("div");
     inner.className = "card-inner";
@@ -162,6 +177,7 @@ function deal(type) {
     card.addEventListener("click", () => {
       if (!card.classList.contains("flipped")) {
         flipSound.currentTime = 0;
+        flipSound.volume = 0.25;
         flipSound.play();
         card.classList.add("flipped");
       }
@@ -173,7 +189,7 @@ function deal(type) {
   });
 }
 
-/* ===== FULL 78 CARD DECK ===== */
+/* ===== FULL 78 CARD DECK (MATCHES YOUR FILESYSTEM) ===== */
 
 const deck = [
   // ===== Major Arcana =====
@@ -220,7 +236,6 @@ const deck = [
     img: `cards/wands/Wands${String(i + 1).padStart(2, "0")}.jpg`
   }))
 ];
-
 </script>
 
 </body>
