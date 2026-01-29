@@ -87,6 +87,8 @@ button:hover { background: #444; }
   <button onclick="deal('single')">Single Card</button>
   <button onclick="deal('three')">Past · Present · Future</button>
   <button onclick="deal('celtic')">Celtic Cross</button>
+  <button onclick="reshuffle()">Reshuffle</button>
+  <button onclick="clarify()">Clarify</button>
 </div>
 
 <div id="fan-container"></div>
@@ -101,12 +103,22 @@ const shuffleSound = document.getElementById("shuffleSound");
 const flipSound = document.getElementById("flipSound");
 const CARD_BACK = "cards/back.jpg";
 
+let workingDeck = [];
+let clarifyIndex = 0;
+let lastSpreadRightEdge = 0;
+
 /* ===== SHUFFLE ===== */
 function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-/* ===== SPREAD POSITIONS (CORRECTED) ===== */
+function play(sound) {
+  sound.currentTime = 0;
+  sound.volume = 0.35;
+  sound.play().catch(()=>{});
+}
+
+/* ===== SPREAD POSITIONS ===== */
 
 const spreads = {
   single: [
@@ -119,80 +131,112 @@ const spreads = {
     { x: 580, y: 260 }
   ],
 
-  // Matches your description EXACTLY
   celtic: [
     { x: 420, y: 260 }, // 1 center
-    { x: 420, y: 260, cross: true }, // 2 crossing (overlaps only)
+    { x: 420, y: 300, cross: true }, // 2 crossing LOWER HALF
     { x: 420, y: 520 }, // 3 below
     { x: 260, y: 260 }, // 4 left
     { x: 420, y: 40  }, // 5 above
     { x: 580, y: 260 }, // 6 right
 
-    // Staff (right side, bottom to top)
-    { x: 760, y: 560 }, // 7
-    { x: 760, y: 400 }, // 8
-    { x: 760, y: 240 }, // 9
-    { x: 760, y: 80  }  // 10
+    // Staff (moved UP to align with card 5)
+    { x: 760, y: 260 }, // 7
+    { x: 760, y: 140 }, // 8
+    { x: 760, y: 20  }, // 9
+    { x: 760, y: -100 } // 10
   ]
 };
+
+/* ===== CARD CREATION ===== */
+
+function createCard(img, z) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.zIndex = z;
+
+  const inner = document.createElement("div");
+  inner.className = "card-inner";
+
+  const back = document.createElement("div");
+  back.className = "face";
+  back.style.backgroundImage = `url(${CARD_BACK})`;
+
+  const front = document.createElement("div");
+  front.className = "face front";
+  front.style.backgroundImage = `url(${img})`;
+
+  card.addEventListener("click", () => {
+    if (!card.classList.contains("flipped")) {
+      play(flipSound);
+      card.classList.add("flipped");
+    }
+  });
+
+  inner.append(back, front);
+  card.appendChild(inner);
+  return card;
+}
 
 /* ===== DEAL ===== */
 
 function deal(type) {
   container.innerHTML = "";
+  play(shuffleSound);
 
-  shuffleSound.currentTime = 0;
-  shuffleSound.volume = 0.3;
-  shuffleSound.play();
+  workingDeck = shuffle(deck);
+  clarifyIndex = spreads[type].length;
 
   const positions = spreads[type];
-  const cards = shuffle(deck);
+
+  lastSpreadRightEdge = 0;
 
   positions.forEach((pos, i) => {
-    const card = document.createElement("div");
-    card.className = "card";
+    const card = createCard(workingDeck[i].img, 1);
+
     card.style.left = pos.x + "px";
     card.style.top = pos.y + "px";
 
-    // z-index control (prevents click bugs)
     if (type === "celtic") {
-      if (i === 1) card.style.zIndex = 3;       // crossing card
-      else if (i === 0) card.style.zIndex = 2;  // center under it
-      else card.style.zIndex = 1;
+      if (i === 1) card.style.zIndex = 3; // crossing
+      if (i === 0) card.style.zIndex = 2; // center
     } else {
       card.style.zIndex = i + 1;
     }
 
-    const inner = document.createElement("div");
-    inner.className = "card-inner";
-
-    const back = document.createElement("div");
-    back.className = "face";
-    back.style.backgroundImage = `url(${CARD_BACK})`;
-
-    const front = document.createElement("div");
-    front.className = "face front";
-    front.style.backgroundImage = `url(${cards[i].img})`;
-
-    card.addEventListener("click", () => {
-      if (!card.classList.contains("flipped")) {
-        flipSound.currentTime = 0;
-        flipSound.volume = 0.25;
-        flipSound.play();
-        card.classList.add("flipped");
-      }
-    });
-
-    inner.append(back, front);
-    card.appendChild(inner);
     container.appendChild(card);
+
+    lastSpreadRightEdge = Math.max(lastSpreadRightEdge, pos.x);
   });
 }
 
-/* ===== FULL 78 CARD DECK (MATCHES YOUR FILESYSTEM) ===== */
+/* ===== RESHUFFLE ===== */
+
+function reshuffle() {
+  container.innerHTML = "";
+  workingDeck = shuffle(deck);
+  clarifyIndex = 0;
+  play(shuffleSound);
+}
+
+/* ===== CLARIFY ===== */
+
+function clarify() {
+  if (!workingDeck.length || clarifyIndex >= workingDeck.length) return;
+
+  const x = lastSpreadRightEdge + 180 + (clarifyIndex * 4);
+  const y = 260;
+
+  const card = createCard(workingDeck[clarifyIndex].img, clarifyIndex + 10);
+  card.style.left = x + "px";
+  card.style.top = y + "px";
+
+  container.appendChild(card);
+  clarifyIndex++;
+}
+
+/* ===== FULL 78 CARD DECK ===== */
 
 const deck = [
-  // ===== Major Arcana =====
   { img: "cards/major/00_Fool.jpg" },
   { img: "cards/major/01_Magician.jpg" },
   { img: "cards/major/02_High_Priestess.jpg" },
@@ -216,25 +260,10 @@ const deck = [
   { img: "cards/major/20_Judgement.jpg" },
   { img: "cards/major/21_World.jpg" },
 
-  // ===== Cups =====
-  ...Array.from({ length: 14 }, (_, i) => ({
-    img: `cards/cups/Cups${String(i + 1).padStart(2, "0")}.jpg`
-  })),
-
-  // ===== Swords =====
-  ...Array.from({ length: 14 }, (_, i) => ({
-    img: `cards/swords/Swords${String(i + 1).padStart(2, "0")}.jpg`
-  })),
-
-  // ===== Pentacles (pents) =====
-  ...Array.from({ length: 14 }, (_, i) => ({
-    img: `cards/pents/Pents${String(i + 1).padStart(2, "0")}.jpg`
-  })),
-
-  // ===== Wands (wands) =====
-  ...Array.from({ length: 14 }, (_, i) => ({
-    img: `cards/wands/Wands${String(i + 1).padStart(2, "0")}.jpg`
-  }))
+  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg` })),
+  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg` })),
+  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg` })),
+  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg` }))
 ];
 </script>
 
