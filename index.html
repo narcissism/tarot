@@ -41,6 +41,20 @@ button:hover { background: #444; }
   overflow: hidden;
 }
 
+/* Meaning panel */
+#meaning-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 260px;
+  padding: 14px;
+  background: rgba(0,0,0,0.75);
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 14px;
+  display: none;
+}
+
 /* ===== CARD ===== */
 
 .card {
@@ -75,9 +89,7 @@ button:hover { background: #444; }
   box-shadow: 0 10px 24px rgba(0,0,0,0.7);
 }
 
-.front {
-  transform: rotateY(180deg);
-}
+.front { transform: rotateY(180deg); }
 </style>
 </head>
 
@@ -87,28 +99,40 @@ button:hover { background: #444; }
   <button onclick="deal('single')">Single Card</button>
   <button onclick="deal('three')">Past · Present · Future</button>
   <button onclick="deal('celtic')">Celtic Cross</button>
-  <button onclick="reshuffle()">Reshuffle</button>
   <button onclick="clarify()">Clarify</button>
+  <button onclick="reshuffle()">Reshuffle</button>
 </div>
 
-<div id="fan-container"></div>
+<div id="fan-container">
+  <div id="meaning-panel">Card meanings will appear here.</div>
+</div>
 
 <audio id="shuffleSound" src="sounds/shuffle.mp3" preload="auto"></audio>
 <audio id="flipSound" src="sounds/flip.mp3" preload="auto"></audio>
 
 <script>
 const container = document.getElementById("fan-container");
+const meaningPanel = document.getElementById("meaning-panel");
 const shuffleSound = document.getElementById("shuffleSound");
 const flipSound = document.getElementById("flipSound");
-const CARD_BACK = "cards/back.jpg";
 
 let workingDeck = [];
 let clarifyIndex = 0;
-let lastSpreadRightEdge = 0;
+let lastSpreadLeftEdge = 420;
 let currentSpread = null;
 let audioUnlocked = false;
 
-/* ===== AUDIO UNLOCK ===== */
+/* ===== TRUE SHUFFLE ===== */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ===== AUDIO ===== */
 function unlockAudio() {
   if (audioUnlocked) return;
   shuffleSound.play().catch(()=>{});
@@ -117,7 +141,6 @@ function unlockAudio() {
   flipSound.pause();
   audioUnlocked = true;
 }
-
 function play(sound) {
   unlockAudio();
   sound.currentTime = 0;
@@ -125,159 +148,119 @@ function play(sound) {
   sound.play().catch(()=>{});
 }
 
-/* ===== SHUFFLE ===== */
-function shuffle(arr) {
-  return [...arr].sort(() => Math.random() - 0.5);
-}
-
-/* ===== SPREAD POSITIONS ===== */
+/* ===== SPREADS ===== */
 
 const spreads = {
-  single: [
-    { x: 420, y: 260 }
-  ],
-
-  three: [
-    { x: 260, y: 260 },
-    { x: 420, y: 260 },
-    { x: 580, y: 260 }
-  ],
-
   celtic: [
-    { x: 420, y: 260 }, // 1 center
-    { x: 420, y: 290, cross: true }, // 2 horizontal crossing
-    { x: 420, y: 500 }, // 3 below
-    { x: 260, y: 260 }, // 4 left
-    { x: 420, y: 40  }, // 5 above
-    { x: 580, y: 260 }, // 6 right
-
-    // Staff (fully visible, no overlap)
-    { x: 760, y: 420 }, // 7
-    { x: 760, y: 300 }, // 8
-    { x: 760, y: 180 }, // 9
-    { x: 760, y: 60  }  // 10
+    { x: 420, y: 260 },
+    { x: 420, y: 290, cross:true },
+    { x: 420, y: 500 },
+    { x: 260, y: 260 },
+    { x: 420, y: 40 },
+    { x: 580, y: 260 },
+    { x: 760, y: 420 },
+    { x: 760, y: 300 },
+    { x: 760, y: 180 },
+    { x: 760, y: 60 }
   ]
 };
 
-/* ===== CARD CREATION ===== */
+/* ===== CARD ===== */
 
-function createCard(img, z, rotate=false) {
+function createCard(img, rotate=false) {
   const card = document.createElement("div");
   card.className = "card";
-  card.style.zIndex = z;
-
-  if (rotate) {
-    card.style.transform = "rotate(90deg)";
-  }
-
-  const inner = document.createElement("div");
-  inner.className = "card-inner";
-
-  const back = document.createElement("div");
-  back.className = "face";
-  back.style.backgroundImage = `url(${CARD_BACK})`;
-
-  const front = document.createElement("div");
-  front.className = "face front";
-  front.style.backgroundImage = `url(${img})`;
+  if (rotate) card.style.transform = "rotate(90deg)";
 
   card.addEventListener("click", () => {
     if (!card.classList.contains("flipped")) {
       play(flipSound);
       card.classList.add("flipped");
+      meaningPanel.style.display = "block";
+      meaningPanel.textContent = "Meaning coming soon…";
     }
   });
 
-  inner.append(back, front);
+  const inner = document.createElement("div");
+  inner.className = "card-inner";
+
+  inner.innerHTML = `
+    <div class="face" style="background-image:url(cards/back.jpg)"></div>
+    <div class="face front" style="background-image:url(${img})"></div>
+  `;
+
   card.appendChild(inner);
   return card;
 }
 
-/* ===== DEAL ===== */
+/* ===== DEAL / RESHUFFLE ===== */
 
 function deal(type) {
   unlockAudio();
-  container.innerHTML = "";
+  container.querySelectorAll(".card").forEach(c => c.remove());
   play(shuffleSound);
 
   currentSpread = type;
   workingDeck = shuffle(deck);
   clarifyIndex = spreads[type].length;
-  lastSpreadRightEdge = 0;
+  lastSpreadLeftEdge = 260;
 
-  spreads[type].forEach((pos, i) => {
-    const isCross = pos.cross === true;
-    const card = createCard(
-      workingDeck[i].img,
-      isCross ? 3 : i === 0 ? 2 : 1,
-      isCross
-    );
-
+  spreads[type].forEach((pos,i)=>{
+    const card = createCard(workingDeck[i].img, pos.cross);
     card.style.left = pos.x + "px";
     card.style.top = pos.y + "px";
-
+    card.style.zIndex = pos.cross ? 3 : i === 0 ? 2 : 1;
     container.appendChild(card);
-    lastSpreadRightEdge = Math.max(lastSpreadRightEdge, pos.x);
   });
 }
 
-/* ===== RESHUFFLE ===== */
-
 function reshuffle() {
-  if (!currentSpread) return;
-  deal(currentSpread);
+  if (currentSpread) deal(currentSpread);
 }
 
 /* ===== CLARIFY ===== */
 
 function clarify() {
-  if (!workingDeck.length || clarifyIndex >= workingDeck.length) return;
-
-  const x = lastSpreadRightEdge + 180 + (clarifyIndex * 6);
-  const y = 260;
-
-  const card = createCard(
-    workingDeck[clarifyIndex].img,
-    clarifyIndex + 10
-  );
-
-  card.style.left = x + "px";
-  card.style.top = y + "px";
-
+  if (clarifyIndex >= workingDeck.length) return;
+  const card = createCard(workingDeck[clarifyIndex].img);
+  lastSpreadLeftEdge -= 40;
+  card.style.left = lastSpreadLeftEdge + "px";
+  card.style.top = "260px";
+  card.style.zIndex = clarifyIndex + 10;
   container.appendChild(card);
   clarifyIndex++;
 }
 
-/* ===== FULL 78 CARD DECK ===== */
+/* ===== DECK ===== */
 
 const deck = [
-  { img: "cards/major/00_Fool.jpg" },
-  { img: "cards/major/01_Magician.jpg" },
-  { img: "cards/major/02_High_Priestess.jpg" },
-  { img: "cards/major/03_Empress.jpg" },
-  { img: "cards/major/04_Emperor.jpg" },
-  { img: "cards/major/05_Hierophant.jpg" },
-  { img: "cards/major/06_Lovers.jpg" },
-  { img: "cards/major/07_Chariot.jpg" },
-  { img: "cards/major/08_Strength.jpg" },
-  { img: "cards/major/09_Hermit.jpg" },
-  { img: "cards/major/10_Wheel.jpg" },
-  { img: "cards/major/11_Justice.jpg" },
-  { img: "cards/major/12_Hanged_Man.jpg" },
-  { img: "cards/major/13_Death.jpg" },
-  { img: "cards/major/14_Temperance.jpg" },
-  { img: "cards/major/15_Devil.jpg" },
-  { img: "cards/major/16_Tower.jpg" },
-  { img: "cards/major/17_Star.jpg" },
-  { img: "cards/major/18_Moon.jpg" },
-  { img: "cards/major/19_Sun.jpg" },
-  { img: "cards/major/20_Judgement.jpg" },
-  { img: "cards/major/21_World.jpg" },
+  { img:"cards/major/00_Fool.jpg" },
+  { img:"cards/major/01_Magician.jpg" },
+  { img:"cards/major/02_High_Priestess.jpg" },
+  { img:"cards/major/03_Empress.jpg" },
+  { img:"cards/major/04_Emperor.jpg" },
+  { img:"cards/major/05_Hierophant.jpg" },
+  { img:"cards/major/06_Lovers.jpg" },
+  { img:"cards/major/07_Chariot.jpg" },
+  { img:"cards/major/08_Strength.jpg" },
+  { img:"cards/major/09_Hermit.jpg" },
+  { img:"cards/major/10_Wheel.jpg" },
+  { img:"cards/major/11_Justice.jpg" },
+  { img:"cards/major/12_Hanged_Man.jpg" },
+  { img:"cards/major/13_Death.jpg" },
+  { img:"cards/major/14_Temperance.jpg" },
+  { img:"cards/major/15_Devil.jpg" },
+  { img:"cards/major/16_Tower.jpg" },
+  { img:"cards/major/17_Star.jpg" },
+  { img:"cards/major/18_Moon.jpg" },
+  { img:"cards/major/19_Sun.jpg" },
+  { img:"cards/major/20_Judgement.jpg" },
+  { img:"cards/major/21_World.jpg" },
 
-  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({ length: 14 }, (_, i) => ({ img: `cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg` }))
+  ...Array.from({length:14},(_,i)=>({img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg`})),
+  ...Array.from({length:14},(_,i)=>({img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg`})),
+  ...Array.from({length:14},(_,i)=>({img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg`})),
+  ...Array.from({length:14},(_,i)=>({img:`cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg`}))
 ];
 </script>
 
