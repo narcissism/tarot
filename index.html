@@ -116,6 +116,7 @@ let workingDeck = [];
 let currentSpread = null;
 let clarifyIndex = 0;
 let topZ = 100;
+let leftEdge = 0;
 
 /* ===== AUDIO UNLOCK ===== */
 document.addEventListener("click", () => {
@@ -151,16 +152,16 @@ const spreads = {
     { x: 620, y: 260 }
   ],
   celtic: [
-    { x: 420, y: 260 },                 // 1
-    { x: 420, y: 260, cross:true },     // 2 horizontal
-    { x: 420, y: 500 },                 // 3
-    { x: 260, y: 260 },                 // 4
-    { x: 420, y: 40 },                  // 5
-    { x: 580, y: 260 },                 // 6
-    { x: 760, y: 460 },                 // 7
-    { x: 760, y: 320 },                 // 8
-    { x: 760, y: 180 },                 // 9
-    { x: 760, y: 40 }                   // 10
+    { x: 420, y: 260 },
+    { x: 420, y: 260, cross:true },
+    { x: 420, y: 500 },
+    { x: 260, y: 260 },
+    { x: 420, y: 40 },
+    { x: 580, y: 260 },
+    { x: 760, y: 460 },
+    { x: 760, y: 320 },
+    { x: 760, y: 180 },
+    { x: 760, y: 40 }
   ]
 };
 
@@ -201,12 +202,15 @@ function deal(type) {
   workingDeck = shuffle(deck);
   play(shuffleSound);
 
+  leftEdge = Infinity;
+
   spreads[type].forEach((pos, i) => {
     const card = createCard(workingDeck[i].img, pos.cross);
     card.style.left = pos.x + "px";
     card.style.top = pos.y + "px";
-    card.style.zIndex = i === 0 ? ++topZ : 1;
+    card.style.zIndex = ++topZ;
     container.appendChild(card);
+    leftEdge = Math.min(leftEdge, pos.x);
   });
 }
 
@@ -228,11 +232,10 @@ function clarify() {
   if (clarifyIndex >= workingDeck.length) return;
 
   const card = createCard(workingDeck[clarifyIndex].img);
+  const index = clarifyIndex - spreads[currentSpread].length;
 
-  const baseX = 260;
-  const offset = Math.min(clarifyIndex - spreads[currentSpread].length, 5);
-
-  card.style.left = (baseX - offset * 30) + "px";
+  const offset = Math.min(index, 5);
+  card.style.left = (leftEdge - 180 - offset * 30) + "px";
   card.style.top = "260px";
   card.style.zIndex = ++topZ;
 
@@ -240,23 +243,22 @@ function clarify() {
   clarifyIndex++;
 }
 
-/* ===== DECK (78 CARDS) ===== */
+/* ===== DECK ===== */
 const deck = [
-  ...Array.from({length:22},(_,i)=>({
-    img:`cards/major/${String(i).padStart(2,"0")}.jpg`
-  })),
-  ...Array.from({length:14},(_,i)=>({
-    img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg`
-  })),
-  ...Array.from({length:14},(_,i)=>({
-    img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg`
-  })),
-  ...Array.from({length:14},(_,i)=>({
-    img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg`
-  })),
-  ...Array.from({length:14},(_,i)=>({
-    img:`cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg`
-  }))
+  // Major Arcana (explicit filenames)
+  ...[
+    "00_Fool","01_Magician","02_High_Priestess","03_Empress","04_Emperor",
+    "05_Hierophant","06_Lovers","07_Chariot","08_Strength","09_Hermit",
+    "10_Wheel","11_Justice","12_Hanged_Man","13_Death","14_Temperance",
+    "15_Devil","16_Tower","17_Star","18_Moon","19_Sun",
+    "20_Judgement","21_World"
+  ].map(n => ({ img: `cards/major/${n}.jpg` })),
+
+  // Minor Arcana
+  ...Array.from({length:14},(_,i)=>({ img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg` })),
+  ...Array.from({length:14},(_,i)=>({ img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg` })),
+  ...Array.from({length:14},(_,i)=>({ img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg` })),
+  ...Array.from({length:14},(_,i)=>({ img:`cards/wants/Wands${String(i+1).padStart(2,"0")}.jpg` }))
 ];
 </script>
 
