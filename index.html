@@ -176,19 +176,51 @@ function deal(type) {
 /* ===== FULL 78 CARD DECK ===== */
 
 const deck = [
-  ...Array.from({length:22},(_,i)=>({
-    img:`cards/major/${String(i).padStart(2,"0")}_${[
-      "Fool","Magician","High_Priestess","Empress","Emperor","Hierophant",
-      "Lovers","Chariot","Strength","Hermit","Wheel","Justice","Hanged_Man",
-      "Death","Temperance","Devil","Tower","Star","Moon","Sun","Judgement","World"
-    ][i]}.jpg`
+  // ===== Major Arcana =====
+  { img: "cards/major/00_Fool.jpg" },
+  { img: "cards/major/01_Magician.jpg" },
+  { img: "cards/major/02_High_Priestess.jpg" },
+  { img: "cards/major/03_Empress.jpg" },
+  { img: "cards/major/04_Emperor.jpg" },
+  { img: "cards/major/05_Hierophant.jpg" },
+  { img: "cards/major/06_Lovers.jpg" },
+  { img: "cards/major/07_Chariot.jpg" },
+  { img: "cards/major/08_Strength.jpg" },
+  { img: "cards/major/09_Hermit.jpg" },
+  { img: "cards/major/10_Wheel.jpg" },
+  { img: "cards/major/11_Justice.jpg" },
+  { img: "cards/major/12_Hanged_Man.jpg" },
+  { img: "cards/major/13_Death.jpg" },
+  { img: "cards/major/14_Temperance.jpg" },
+  { img: "cards/major/15_Devil.jpg" },
+  { img: "cards/major/16_Tower.jpg" },
+  { img: "cards/major/17_Star.jpg" },
+  { img: "cards/major/18_Moon.jpg" },
+  { img: "cards/major/19_Sun.jpg" },
+  { img: "cards/major/20_Judgement.jpg" },
+  { img: "cards/major/21_World.jpg" },
+
+  // ===== Cups =====
+  ...Array.from({ length: 14 }, (_, i) => ({
+    img: `cards/cups/Cups${String(i + 1).padStart(2, "0")}.jpg`
   })),
-  ...["cups","wands","swords","pentacles"].flatMap(suit =>
-    Array.from({length:14},(_,i)=>({
-      img:`cards/${suit}/${suit}${String(i+1).padStart(2,"0")}.jpg`
-    }))
-  )
+
+  // ===== Swords =====
+  ...Array.from({ length: 14 }, (_, i) => ({
+    img: `cards/swords/Swords${String(i + 1).padStart(2, "0")}.jpg`
+  })),
+
+  // ===== Pentacles (pents) =====
+  ...Array.from({ length: 14 }, (_, i) => ({
+    img: `cards/pents/Pents${String(i + 1).padStart(2, "0")}.jpg`
+  })),
+
+  // ===== Wands (wands) =====
+  ...Array.from({ length: 14 }, (_, i) => ({
+    img: `cards/wands/Wands${String(i + 1).padStart(2, "0")}.jpg`
+  }))
 ];
+
 </script>
 
 </body>
