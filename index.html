@@ -2,256 +2,201 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tarot Solitaire Shuffle</title>
+<title>Tarot</title>
 
 <style>
-  body {
-    margin: 0;
-    height: 100vh;
-    background: #111;
-    color: #eee;
-    font-family: serif;
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-  }
+body {
+  margin: 0;
+  height: 100vh;
+  background: #111;
+  color: #eee;
+  font-family: serif;
+  display: flex;
+}
 
-  #controls {
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    background: #222;
-    border-right: 1px solid #444;
-  }
+#controls {
+  width: 200px;
+  padding: 20px;
+  background: #222;
+  border-right: 1px solid #444;
+}
 
-  h1 {
-    font-weight: normal;
-    letter-spacing: 0.05em;
-    margin-bottom: 20px;
-    text-align: center;
-  }
+button {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-  button {
-    margin: 10px 0;
-    padding: 10px 12px;
-    background: #333;
-    color: #eee;
-    border: 1px solid #555;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-  }
+button:hover { background: #444; }
 
-  button:hover {
-    background: #444;
-  }
+#fan-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  #fan-container {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* ===== CARD FLIP SYSTEM ===== */
 
-  .card {
-    position: absolute;
-    width: 140px;
-    height: 220px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.7);
-    transition: transform 0.5s ease, opacity 0.5s ease;
-    cursor: pointer;
-  }
+.card {
+  position: absolute;
+  width: 140px;
+  height: 220px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s ease;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.7);
+}
+
+.card-front {
+  transform: rotateY(180deg);
+}
+
 </style>
 </head>
 
 <body>
 
 <div id="controls">
-  <h1>Tarot</h1>
-  <button id="draw">Single Draw</button>
-  <button data-spread="three">Past-Present-Future</button>
-  <button data-spread="celtic">Celtic Cross</button>
+  <button onclick="deal('single')">Single Card</button>
+  <button onclick="deal('three')">Past · Present · Future</button>
+  <button onclick="deal('celtic')">Celtic Cross</button>
 </div>
 
 <div id="fan-container"></div>
 
 <script>
-/* =========================
-   FULL 78-CARD DECK
-========================= */
-
-const deck = [
-  // Major Arcana
-  { name: "The Fool", img: "cards/major/00_Fool.jpg" },
-  { name: "The Magician", img: "cards/major/01_Magician.jpg" },
-  { name: "The High Priestess", img: "cards/major/02_High_Priestess.jpg" },
-  { name: "The Empress", img: "cards/major/03_Empress.jpg" },
-  { name: "The Emperor", img: "cards/major/04_Emperor.jpg" },
-  { name: "The Hierophant", img: "cards/major/05_Hierophant.jpg" },
-  { name: "The Lovers", img: "cards/major/06_Lovers.jpg" },
-  { name: "The Chariot", img: "cards/major/07_Chariot.jpg" },
-  { name: "Strength", img: "cards/major/08_Strength.jpg" },
-  { name: "The Hermit", img: "cards/major/09_Hermit.jpg" },
-  { name: "Wheel of Fortune", img: "cards/major/10_Wheel.jpg" },
-  { name: "Justice", img: "cards/major/11_Justice.jpg" },
-  { name: "The Hanged Man", img: "cards/major/12_Hanged_Man.jpg" },
-  { name: "Death", img: "cards/major/13_Death.jpg" },
-  { name: "Temperance", img: "cards/major/14_Temperance.jpg" },
-  { name: "The Devil", img: "cards/major/15_Devil.jpg" },
-  { name: "The Tower", img: "cards/major/16_Tower.jpg" },
-  { name: "The Star", img: "cards/major/17_Star.jpg" },
-  { name: "The Moon", img: "cards/major/18_Moon.jpg" },
-  { name: "The Sun", img: "cards/major/19_Sun.jpg" },
-  { name: "Judgement", img: "cards/major/20_Judgement.jpg" },
-  { name: "The World", img: "cards/major/21_World.jpg" },
-  // Cups
-  { name: "Ace of Cups", img: "cards/cups/cups01.jpg" },
-  { name: "Two of Cups", img: "cards/cups/cups02.jpg" },
-  { name: "Three of Cups", img: "cards/cups/cups03.jpg" },
-  { name: "Four of Cups", img: "cards/cups/cups04.jpg" },
-  { name: "Five of Cups", img: "cards/cups/cups05.jpg" },
-  { name: "Six of Cups", img: "cards/cups/cups06.jpg" },
-  { name: "Seven of Cups", img: "cards/cups/cups07.jpg" },
-  { name: "Eight of Cups", img: "cards/cups/cups08.jpg" },
-  { name: "Nine of Cups", img: "cards/cups/cups09.jpg" },
-  { name: "Ten of Cups", img: "cards/cups/cups10.jpg" },
-  { name: "Page of Cups", img: "cards/cups/cups11.jpg" },
-  { name: "Knight of Cups", img: "cards/cups/cups12.jpg" },
-  { name: "Queen of Cups", img: "cards/cups/cups13.jpg" },
-  { name: "King of Cups", img: "cards/cups/cups14.jpg" },
-  // Wands
-  { name: "Ace of Wands", img: "cards/wands/wands01.jpg" },
-  { name: "Two of Wands", img: "cards/wands/wands02.jpg" },
-  { name: "Three of Wands", img: "cards/wands/wands03.jpg" },
-  { name: "Four of Wands", img: "cards/wands/wands04.jpg" },
-  { name: "Five of Wands", img: "cards/wands/wands05.jpg" },
-  { name: "Six of Wands", img: "cards/wands/wands06.jpg" },
-  { name: "Seven of Wands", img: "cards/wands/wands07.jpg" },
-  { name: "Eight of Wands", img: "cards/wands/wands08.jpg" },
-  { name: "Nine of Wands", img: "cards/wands/wands09.jpg" },
-  { name: "Ten of Wands", img: "cards/wands/wands10.jpg" },
-  { name: "Page of Wands", img: "cards/wands/wands11.jpg" },
-  { name: "Knight of Wands", img: "cards/wands/wands12.jpg" },
-  { name: "Queen of Wands", img: "cards/wands/wands13.jpg" },
-  { name: "King of Wands", img: "cards/wands/wands14.jpg" },
-  // Swords
-  { name: "Ace of Swords", img: "cards/swords/swords01.jpg" },
-  { name: "Two of Swords", img: "cards/swords/swords02.jpg" },
-  { name: "Three of Swords", img: "cards/swords/swords03.jpg" },
-  { name: "Four of Swords", img: "cards/swords/swords04.jpg" },
-  { name: "Five of Swords", img: "cards/swords/swords05.jpg" },
-  { name: "Six of Swords", img: "cards/swords/swords06.jpg" },
-  { name: "Seven of Swords", img: "cards/swords/swords07.jpg" },
-  { name: "Eight of Swords", img: "cards/swords/swords08.jpg" },
-  { name: "Nine of Swords", img: "cards/swords/swords09.jpg" },
-  { name: "Ten of Swords", img: "cards/swords/swords10.jpg" },
-  { name: "Page of Swords", img: "cards/swords/swords11.jpg" },
-  { name: "Knight of Swords", img: "cards/swords/swords12.jpg" },
-  { name: "Queen of Swords", img: "cards/swords/swords13.jpg" },
-  { name: "King of Swords", img: "cards/swords/swords14.jpg" },
-  // Pentacles
-  { name: "Ace of Pentacles", img: "cards/pentacles/pentacles01.jpg" },
-  { name: "Two of Pentacles", img: "cards/pentacles/pentacles02.jpg" },
-  { name: "Three of Pentacles", img: "cards/pentacles/pentacles03.jpg" },
-  { name: "Four of Pentacles", img: "cards/pentacles/pentacles04.jpg" },
-  { name: "Five of Pentacles", img: "cards/pentacles/pentacles05.jpg" },
-  { name: "Six of Pentacles", img: "cards/pentacles/pentacles06.jpg" },
-  { name: "Seven of Pentacles", img: "cards/pentacles/pentacles07.jpg" },
-  { name: "Eight of Pentacles", img: "cards/pentacles/pentacles08.jpg" },
-  { name: "Nine of Pentacles", img: "cards/pentacles/pentacles09.jpg" },
-  { name: "Ten of Pentacles", img: "cards/pentacles/pentacles10.jpg" },
-  { name: "Page of Pentacles", img: "cards/pentacles/pentacles11.jpg" },
-  { name: "Knight of Pentacles", img: "cards/pentacles/pentacles12.jpg" },
-  { name: "Queen of Pentacles", img: "cards/pentacles/pentacles13.jpg" },
-  { name: "King of Pentacles", img: "cards/pentacles/pentacles14.jpg" }
-];
-
 const CARD_BACK = "cards/back.jpg";
 
-/* =========================
-   UTILS
-========================= */
-
-function shuffle(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-/* =========================
-   SPREAD POSITIONS
-========================= */
+/* ===== POSITIONS ===== */
 
 const spreads = {
   single: [{ x: 0, y: 0 }],
   three: [
-    { x: -160, y: 0 },
+    { x: -180, y: 0 },
     { x: 0, y: 0 },
-    { x: 160, y: 0 }
+    { x: 180, y: 0 }
   ],
   celtic: [
     { x: 0, y: 0 },      // 1
     { x: 0, y: 0 },      // 2 crossing
-    { x: -100, y: -120 }, // 3
-    { x: 100, y: -120 },  // 4
-    { x: -100, y: 120 },  // 5
-    { x: 100, y: 120 },   // 6
-    { x: 250, y: -180 },  // 7
-    { x: 250, y: -90 },   // 8
-    { x: 250, y: 0 },     // 9
-    { x: 250, y: 90 }     // 10
+    { x: -120, y: -140 },
+    { x: 120, y: -140 },
+    { x: -120, y: 140 },
+    { x: 120, y: 140 },
+    { x: 300, y: -180 },
+    { x: 300, y: -90 },
+    { x: 300, y: 0 },
+    { x: 300, y: 90 }
   ]
 };
 
-/* =========================
-   MAIN FUNCTIONS
-========================= */
+/* ===== SHUFFLE ===== */
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+/* ===== DEAL ===== */
 
 const container = document.getElementById("fan-container");
-let currentSpread = "single";
 
-function dealSpread(type) {
+function deal(type) {
   container.innerHTML = "";
   const positions = spreads[type];
-  const shuffled = shuffle(deck);
+  const cards = shuffle(deck);
 
   positions.forEach((pos, i) => {
     const card = document.createElement("div");
     card.className = "card";
-    card.dataset.front = shuffled[i % shuffled.length].img;
-    card.style.backgroundImage = `url(${CARD_BACK})`;
     card.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-    if (type === "celtic" && i === 1) card.style.transform += " rotate(90deg)";
+    card.style.zIndex = i + 1;
+
+    const inner = document.createElement("div");
+    inner.className = "card-inner";
+
+    const back = document.createElement("div");
+    back.className = "card-face";
+    back.style.backgroundImage = `url(${CARD_BACK})`;
+
+    const front = document.createElement("div");
+    front.className = "card-face card-front";
+    front.style.backgroundImage = `url(${cards[i].img})`;
+
+    // Celtic Cross card #2 sideways
+    if (type === "celtic" && i === 1) {
+      card.style.transform += " rotate(90deg)";
+    }
+
     card.addEventListener("click", () => {
-      card.style.backgroundImage = `url(${card.dataset.front})`;
+      card.classList.toggle("flipped");
     });
+
+    inner.appendChild(back);
+    inner.appendChild(front);
+    card.appendChild(inner);
     container.appendChild(card);
   });
 }
 
-/* =========================
-   BUTTON EVENTS
-========================= */
+/* ===== FULL 78-CARD DECK ===== */
 
-document.getElementById("draw").addEventListener("click", () => {
-  currentSpread = "single";
-  dealSpread("single");
-});
-
-document.querySelectorAll("#controls button[data-spread]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    currentSpread = btn.dataset.spread;
-    dealSpread(currentSpread);
-  });
-});
+const deck = [
+  { img: "cards/major/00_Fool.jpg" },
+  { img: "cards/major/01_Magician.jpg" },
+  { img: "cards/major/02_High_Priestess.jpg" },
+  { img: "cards/major/03_Empress.jpg" },
+  { img: "cards/major/04_Emperor.jpg" },
+  { img: "cards/major/05_Hierophant.jpg" },
+  { img: "cards/major/06_Lovers.jpg" },
+  { img: "cards/major/07_Chariot.jpg" },
+  { img: "cards/major/08_Strength.jpg" },
+  { img: "cards/major/09_Hermit.jpg" },
+  { img: "cards/major/10_Wheel.jpg" },
+  { img: "cards/major/11_Justice.jpg" },
+  { img: "cards/major/12_Hanged_Man.jpg" },
+  { img: "cards/major/13_Death.jpg" },
+  { img: "cards/major/14_Temperance.jpg" },
+  { img: "cards/major/15_Devil.jpg" },
+  { img: "cards/major/16_Tower.jpg" },
+  { img: "cards/major/17_Star.jpg" },
+  { img: "cards/major/18_Moon.jpg" },
+  { img: "cards/major/19_Sun.jpg" },
+  { img: "cards/major/20_Judgement.jpg" },
+  { img: "cards/major/21_World.jpg" },
+  ...["cups","wands","swords","pentacles"].flatMap(suit =>
+    Array.from({length:14}, (_,i)=>({
+      img:`cards/${suit}/${suit}${String(i+1).padStart(2,"0")}.jpg`
+    }))
+  )
+];
 </script>
 
 </body>
