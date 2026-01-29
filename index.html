@@ -15,7 +15,7 @@ body {
 }
 
 #controls {
-  width: 200px;
+  width: 220px;
   padding: 20px;
   background: #222;
   border-right: 1px solid #444;
@@ -37,19 +37,16 @@ button:hover { background: #444; }
 #fan-container {
   flex: 1;
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  overflow: hidden;
 }
 
-/* ===== CARD FLIP SYSTEM ===== */
+/* ===== CARD ===== */
 
 .card {
   position: absolute;
   width: 140px;
   height: 220px;
   perspective: 1000px;
-  cursor: pointer;
 }
 
 .card-inner {
@@ -57,14 +54,15 @@ button:hover { background: #444; }
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.8s ease;
+  transition: transform 0.7s ease;
 }
 
 .card.flipped .card-inner {
   transform: rotateY(180deg);
+  pointer-events: none;
 }
 
-.card-face {
+.face {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -75,10 +73,7 @@ button:hover { background: #444; }
   box-shadow: 0 10px 24px rgba(0,0,0,0.7);
 }
 
-.card-front {
-  transform: rotateY(180deg);
-}
-
+.front { transform: rotateY(180deg); }
 </style>
 </head>
 
@@ -92,107 +87,104 @@ button:hover { background: #444; }
 
 <div id="fan-container"></div>
 
+<!-- sounds -->
+<audio id="shuffleSound" src="sounds/shuffle.mp3" preload="auto"></audio>
+<audio id="flipSound" src="sounds/flip.mp3" preload="auto"></audio>
+
 <script>
+const container = document.getElementById("fan-container");
+const shuffleSound = document.getElementById("shuffleSound");
+const flipSound = document.getElementById("flipSound");
 const CARD_BACK = "cards/back.jpg";
 
-/* ===== POSITIONS ===== */
-
-const spreads = {
-  single: [{ x: 0, y: 0 }],
-  three: [
-    { x: -180, y: 0 },
-    { x: 0, y: 0 },
-    { x: 180, y: 0 }
-  ],
-  celtic: [
-    { x: 0, y: 0 },      // 1
-    { x: 0, y: 0 },      // 2 crossing
-    { x: -120, y: -140 },
-    { x: 120, y: -140 },
-    { x: -120, y: 140 },
-    { x: 120, y: 140 },
-    { x: 300, y: -180 },
-    { x: 300, y: -90 },
-    { x: 300, y: 0 },
-    { x: 300, y: 90 }
-  ]
-};
-
 /* ===== SHUFFLE ===== */
-
 function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-/* ===== DEAL ===== */
+/* ===== SPREAD POSITIONS ===== */
 
-const container = document.getElementById("fan-container");
+const spreads = {
+  single: [
+    { x: 400, y: 250 }
+  ],
+
+  three: [
+    { x: 260, y: 250 },
+    { x: 420, y: 250 },
+    { x: 580, y: 250 }
+  ],
+
+  celtic: [
+    { x: 360, y: 250 }, // 1 center
+    { x: 360, y: 250, cross:true }, // 2 crossing
+    { x: 360, y: 90  }, // 3 above
+    { x: 360, y: 410 }, // 4 below
+    { x: 200, y: 250 }, // 5 left
+    { x: 520, y: 250 }, // 6 right
+    { x: 700, y: 430 }, // 7
+    { x: 700, y: 320 }, // 8
+    { x: 700, y: 210 }, // 9
+    { x: 700, y: 100 }  // 10
+  ]
+};
+
+/* ===== DEAL ===== */
 
 function deal(type) {
   container.innerHTML = "";
+  shuffleSound.currentTime = 0;
+  shuffleSound.play();
+
   const positions = spreads[type];
   const cards = shuffle(deck);
 
   positions.forEach((pos, i) => {
     const card = document.createElement("div");
     card.className = "card";
-    card.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+    card.style.left = pos.x + "px";
+    card.style.top = pos.y + "px";
     card.style.zIndex = i + 1;
+
+    if (pos.cross) card.style.transform = "rotate(90deg)";
 
     const inner = document.createElement("div");
     inner.className = "card-inner";
 
     const back = document.createElement("div");
-    back.className = "card-face";
+    back.className = "face";
     back.style.backgroundImage = `url(${CARD_BACK})`;
 
     const front = document.createElement("div");
-    front.className = "card-face card-front";
+    front.className = "face front";
     front.style.backgroundImage = `url(${cards[i].img})`;
 
-    // Celtic Cross card #2 sideways
-    if (type === "celtic" && i === 1) {
-      card.style.transform += " rotate(90deg)";
-    }
-
     card.addEventListener("click", () => {
-      card.classList.toggle("flipped");
+      if (!card.classList.contains("flipped")) {
+        flipSound.currentTime = 0;
+        flipSound.play();
+        card.classList.add("flipped");
+      }
     });
 
-    inner.appendChild(back);
-    inner.appendChild(front);
+    inner.append(back, front);
     card.appendChild(inner);
     container.appendChild(card);
   });
 }
 
-/* ===== FULL 78-CARD DECK ===== */
+/* ===== FULL 78 CARD DECK ===== */
 
 const deck = [
-  { img: "cards/major/00_Fool.jpg" },
-  { img: "cards/major/01_Magician.jpg" },
-  { img: "cards/major/02_High_Priestess.jpg" },
-  { img: "cards/major/03_Empress.jpg" },
-  { img: "cards/major/04_Emperor.jpg" },
-  { img: "cards/major/05_Hierophant.jpg" },
-  { img: "cards/major/06_Lovers.jpg" },
-  { img: "cards/major/07_Chariot.jpg" },
-  { img: "cards/major/08_Strength.jpg" },
-  { img: "cards/major/09_Hermit.jpg" },
-  { img: "cards/major/10_Wheel.jpg" },
-  { img: "cards/major/11_Justice.jpg" },
-  { img: "cards/major/12_Hanged_Man.jpg" },
-  { img: "cards/major/13_Death.jpg" },
-  { img: "cards/major/14_Temperance.jpg" },
-  { img: "cards/major/15_Devil.jpg" },
-  { img: "cards/major/16_Tower.jpg" },
-  { img: "cards/major/17_Star.jpg" },
-  { img: "cards/major/18_Moon.jpg" },
-  { img: "cards/major/19_Sun.jpg" },
-  { img: "cards/major/20_Judgement.jpg" },
-  { img: "cards/major/21_World.jpg" },
+  ...Array.from({length:22},(_,i)=>({
+    img:`cards/major/${String(i).padStart(2,"0")}_${[
+      "Fool","Magician","High_Priestess","Empress","Emperor","Hierophant",
+      "Lovers","Chariot","Strength","Hermit","Wheel","Justice","Hanged_Man",
+      "Death","Temperance","Devil","Tower","Star","Moon","Sun","Judgement","World"
+    ][i]}.jpg`
+  })),
   ...["cups","wands","swords","pentacles"].flatMap(suit =>
-    Array.from({length:14}, (_,i)=>({
+    Array.from({length:14},(_,i)=>({
       img:`cards/${suit}/${suit}${String(i+1).padStart(2,"0")}.jpg`
     }))
   )
