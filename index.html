@@ -234,7 +234,7 @@ function clarify() {
   const card = createCard(workingDeck[clarifyIndex].img);
   const index = clarifyIndex - spreads[currentSpread].length;
 
-  const offset = Math.min(index, 5);
+  const offset = Math.min(index, 3);
   card.style.left = (leftEdge - 180 - offset * 30) + "px";
   card.style.top = "260px";
   card.style.zIndex = ++topZ;
@@ -258,7 +258,7 @@ const deck = [
   ...Array.from({length:14},(_,i)=>({ img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg` })),
   ...Array.from({length:14},(_,i)=>({ img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg` })),
   ...Array.from({length:14},(_,i)=>({ img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({length:14},(_,i)=>({ img:`cards/wants/Wands${String(i+1).padStart(2,"0")}.jpg` }))
+  ...Array.from({length:14},(_,i)=>({ img:`cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg` }))
 ];
 </script>
 
