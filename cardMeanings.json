@@ -1,38 +1,27 @@
 {
-  "00_Fool": {
+  "00": {
     "name": "The Fool",
-    "upright": "New beginnings, adventure, innocence.",
-    "reversed": "Recklessness, hesitation, foolishness.",
-    "context": "Near The Magician: readiness to take a leap with skill."
+    "upright": "New beginnings, openness, trust, a leap of faith.",
+    "reversed": "Recklessness, hesitation, lack of direction."
   },
-  "01_Magician": {
+  "01": {
     "name": "The Magician",
-    "upright": "Skill, manifestation, resourcefulness.",
-    "reversed": "Manipulation, trickery, unused potential."
+    "upright": "Manifestation, skill, focus, personal power.",
+    "reversed": "Manipulation, scattered energy, unrealized potential."
   },
-  "02_High_Priestess": {
+  "02": {
     "name": "The High Priestess",
-    "upright": "Intuition, wisdom, mystery.",
-    "reversed": "Secrets, withdrawal, superficiality."
+    "upright": "Intuition, mystery, inner knowledge.",
+    "reversed": "Hidden truths, disconnection from intuition."
   },
   "Cups01": {
     "name": "Ace of Cups",
-    "upright": "Emotional renewal, new relationships.",
-    "reversed": "Blocked emotions, disappointment."
+    "upright": "Emotional renewal, love, intuition.",
+    "reversed": "Blocked emotions, emotional loss."
   },
-  "Swords01": {
-    "name": "Ace of Swords",
-    "upright": "Clarity, breakthrough, mental focus.",
-    "reversed": "Confusion, miscommunication."
-  },
-  "Pents01": {
-    "name": "Ace of Pentacles",
-    "upright": "New material opportunity, prosperity.",
-    "reversed": "Missed opportunity, instability."
-  },
-  "Wands01": {
-    "name": "Ace of Wands",
-    "upright": "Inspiration, energy, growth.",
-    "reversed": "Delays, lack of direction."
+  "Cups02": {
+    "name": "Two of Cups",
+    "upright": "Union, partnership, mutual attraction.",
+    "reversed": "Imbalance, miscommunication."
   }
 }
