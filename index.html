@@ -15,10 +15,20 @@ body {
 }
 
 #controls {
-  width: 220px;
+  width: 240px;
   padding: 20px;
   background: #222;
   border-right: 1px solid #444;
+}
+
+#controls input {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: #222;
+  color: #eee;
 }
 
 button {
@@ -92,6 +102,7 @@ button:hover { background: #444; }
 <body>
 
 <div id="controls">
+  <input type="text" id="userQuestion" placeholder="Enter your question or wish">
   <button onclick="deal('single')">Single Card</button>
   <button onclick="deal('three')">Past · Present · Future</button>
   <button onclick="deal('celtic')">Celtic Cross</button>
@@ -117,6 +128,13 @@ let currentSpread = null;
 let clarifyIndex = 0;
 let topZ = 100;
 let leftEdge = 0;
+let cardMeanings = {};
+
+/* ===== LOAD CARD MEANINGS JSON ===== */
+fetch("cardMeanings.json")
+  .then(res => res.json())
+  .then(data => cardMeanings = data)
+  .catch(e => console.error("Error loading card meanings:", e));
 
 /* ===== AUDIO UNLOCK ===== */
 document.addEventListener("click", () => {
@@ -143,9 +161,7 @@ function shuffle(arr) {
 
 /* ===== SPREAD DEFINITIONS ===== */
 const spreads = {
-  single: [
-    { x: 420, y: 260 }
-  ],
+  single: [{ x: 420, y: 260 }],
   three: [
     { x: 300, y: 260 },
     { x: 460, y: 260 },
@@ -165,7 +181,7 @@ const spreads = {
   ]
 };
 
-/* ===== CARD CREATION ===== */
+/* ===== CREATE CARD ===== */
 function createCard(img, rotate=false) {
   const card = document.createElement("div");
   card.className = "card";
@@ -178,6 +194,21 @@ function createCard(img, rotate=false) {
     }
     card.style.zIndex = ++topZ;
     meaningPanel.style.display = "block";
+
+    const imgPath = card.querySelector(".front").style.backgroundImage;
+    const match = imgPath.match(/\/([^\/]+)\.jpg/);
+    if (!match) return;
+    const cardID = match[1]; 
+    const info = cardMeanings[cardID];
+    if (!info) return;
+
+    const question = document.getElementById("userQuestion").value;
+    meaningPanel.innerHTML = `
+      <strong>${info.name}</strong><br>
+      <em>Question:</em> ${question || "(No question entered)"}<br>
+      ${info.upright || ""}
+      ${info.context ? `<br><em>Context:</em> ${info.context}` : ""}
+    `;
   });
 
   const inner = document.createElement("div");
@@ -190,7 +221,7 @@ function createCard(img, rotate=false) {
   return card;
 }
 
-/* ===== DEAL ===== */
+/* ===== DEAL SPREAD ===== */
 function deal(type) {
   container.querySelectorAll(".card").forEach(c => c.remove());
   meaningPanel.style.display = "none";
@@ -203,7 +234,6 @@ function deal(type) {
   play(shuffleSound);
 
   leftEdge = Infinity;
-
   spreads[type].forEach((pos, i) => {
     const card = createCard(workingDeck[i].img, pos.cross);
     card.style.left = pos.x + "px";
@@ -219,22 +249,20 @@ function reshuffle() {
   if (currentSpread) deal(currentSpread);
 }
 
-/* ===== ALL FLIPPED CHECK ===== */
+/* ===== CHECK ALL FLIPPED ===== */
 function allCardsFlipped() {
   return [...container.querySelectorAll(".card")]
     .every(card => card.classList.contains("flipped"));
 }
 
-/* ===== CLARIFY ===== */
+/* ===== CLARIFY CARD ===== */
 function clarify() {
-  if (!currentSpread) return;
-  if (!allCardsFlipped()) return;
-  if (clarifyIndex >= workingDeck.length) return;
+  if (!currentSpread || !allCardsFlipped() || clarifyIndex >= workingDeck.length) return;
 
   const card = createCard(workingDeck[clarifyIndex].img);
   const index = clarifyIndex - spreads[currentSpread].length;
+  const offset = Math.min(index, 5);
 
-  const offset = Math.min(index, 3);
   card.style.left = (leftEdge - 180 - offset * 30) + "px";
   card.style.top = "260px";
   card.style.zIndex = ++topZ;
@@ -243,22 +271,22 @@ function clarify() {
   clarifyIndex++;
 }
 
-/* ===== DECK ===== */
+/* ===== FULL DECK ===== */
 const deck = [
-  // Major Arcana (explicit filenames)
+  // Major Arcana
   ...[
     "00_Fool","01_Magician","02_High_Priestess","03_Empress","04_Emperor",
     "05_Hierophant","06_Lovers","07_Chariot","08_Strength","09_Hermit",
     "10_Wheel","11_Justice","12_Hanged_Man","13_Death","14_Temperance",
     "15_Devil","16_Tower","17_Star","18_Moon","19_Sun",
     "20_Judgement","21_World"
-  ].map(n => ({ img: `cards/major/${n}.jpg` })),
+  ].map(n => ({ img:`cards/major/${n}.jpg` })),
 
   // Minor Arcana
   ...Array.from({length:14},(_,i)=>({ img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg` })),
   ...Array.from({length:14},(_,i)=>({ img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg` })),
   ...Array.from({length:14},(_,i)=>({ img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({length:14},(_,i)=>({ img:`cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg` }))
+  ...Array.from({length:14},(_,i)=>({ img:`cards/wants/Wands${String(i+1).padStart(2,"0")}.jpg` }))
 ];
 </script>
 
