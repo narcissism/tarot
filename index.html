@@ -125,23 +125,45 @@ let topZ = 100;
 let leftEdge = 0;
 let cardMeanings = {};
 
-/* ===== LOAD CARD MEANINGS JSON ===== */
+// ===== Load card meanings JSON =====
 fetch("cardMeanings.json")
   .then(res => res.json())
   .then(data => cardMeanings = data)
   .catch(e => console.error("Error loading card meanings:", e));
 
-/* ===== TRUE SHUFFLE ===== */
+// ===== Placement notes =====
+const placementNotes = {
+  single: { 0: "This card represents your current situation." },
+  three: {
+    0: "Past: influences from your past affecting the situation.",
+    1: "Present: what is happening right now.",
+    2: "Future: likely outcome or direction things are heading."
+  },
+  celtic: {
+    0: "1. You: your current position or state in this situation.",
+    1: "2. What covers/crosses you: obstacles or challenges.",
+    2: "3. Foundation: what is beneath your inquiry, underlying issues.",
+    3: "4. Past: conditions that are behind you.",
+    4: "5. Crowning card: your goal or what you aim to achieve.",
+    5: "6. Future: short-term events that will soon come to pass.",
+    6: "7. Personality: how to conduct yourself for desired outcome.",
+    7: "8. How others see you: external perspectives.",
+    8: "9. Hopes and fears: your hidden motivations.",
+    9: "10. Outcome: the final resolution of the situation."
+  }
+};
+
+// ===== Shuffle =====
 function shuffle(arr) {
   const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
 }
 
-/* ===== SPREAD DEFINITIONS ===== */
+// ===== Spreads =====
 const spreads = {
   single: [{ x: 420, y: 260 }],
   three: [
@@ -156,39 +178,45 @@ const spreads = {
     { x: 260, y: 260 },
     { x: 420, y: 40 },
     { x: 580, y: 260 },
-    { x: 760, y: 460 },
-    { x: 760, y: 320 },
-    { x: 760, y: 180 },
-    { x: 760, y: 40 }
+    { x: 700, y: 400 },
+    { x: 700, y: 320 },
+    { x: 700, y: 240 },
+    { x: 700, y: 160 }
   ]
 };
 
-/* ===== CREATE CARD ===== */
+// ===== Create card =====
 function createCard(img, rotate=false) {
   const card = document.createElement("div");
   card.className = "card";
-  if (rotate) card.style.transform = "rotate(90deg)";
+  if(rotate) card.style.transform = "rotate(90deg)";
 
   card.addEventListener("click", () => {
-    if (!card.classList.contains("flipped")) {
-      card.classList.add("flipped");
-    }
+    if(!card.classList.contains("flipped")) card.classList.add("flipped");
     card.style.zIndex = ++topZ;
     meaningPanel.style.display = "block";
 
     const imgPath = card.querySelector(".front").style.backgroundImage;
     const match = imgPath.match(/\/([^\/]+)\.jpg/);
-    if (!match) return;
-    const cardID = match[1]; 
+    if(!match) return;
+    const cardID = match[1];
     const info = cardMeanings[cardID];
-    if (!info) return;
+    if(!info) return;
 
     const question = document.getElementById("userQuestion").value;
+
+    // Placement note
+    const allCards = [...container.querySelectorAll(".card")];
+    const cardIndex = allCards.indexOf(card);
+    let note = "";
+    if(currentSpread && placementNotes[currentSpread])
+      note = placementNotes[currentSpread][cardIndex] || "";
+
     meaningPanel.innerHTML = `
       <strong>${info.name}</strong><br>
       <em>Question:</em> ${question || "(No question entered)"}<br>
-      ${info.upright || ""}
-      ${info.context ? `<br><em>Context:</em> ${info.context}` : ""}
+      ${info.upright || ""}<br>
+      ${note ? `<em>Placement note:</em> ${note}` : ""}
     `;
   });
 
@@ -202,9 +230,9 @@ function createCard(img, rotate=false) {
   return card;
 }
 
-/* ===== DEAL SPREAD ===== */
+// ===== Deal spread =====
 function deal(type) {
-  container.querySelectorAll(".card").forEach(c => c.remove());
+  container.querySelectorAll(".card").forEach(c=>c.remove());
   meaningPanel.style.display = "none";
 
   currentSpread = type;
@@ -212,38 +240,38 @@ function deal(type) {
   topZ = 100;
 
   workingDeck = shuffle(deck);
-
   leftEdge = Infinity;
-  spreads[type].forEach((pos, i) => {
+
+  spreads[type].forEach((pos, i)=>{
     const card = createCard(workingDeck[i].img, pos.cross);
-    card.style.left = pos.x + "px";
-    card.style.top = pos.y + "px";
+    card.style.left = pos.x+"px";
+    card.style.top = pos.y+"px";
     card.style.zIndex = ++topZ;
     container.appendChild(card);
     leftEdge = Math.min(leftEdge, pos.x);
   });
 }
 
-/* ===== RESHUFFLE ===== */
+// ===== Reshuffle =====
 function reshuffle() {
-  if (currentSpread) deal(currentSpread);
+  if(currentSpread) deal(currentSpread);
 }
 
-/* ===== CHECK ALL FLIPPED ===== */
+// ===== All flipped check =====
 function allCardsFlipped() {
   return [...container.querySelectorAll(".card")]
     .every(card => card.classList.contains("flipped"));
 }
 
-/* ===== CLARIFY CARD ===== */
+// ===== Clarify card =====
 function clarify() {
-  if (!currentSpread || !allCardsFlipped() || clarifyIndex >= workingDeck.length) return;
+  if(!currentSpread || !allCardsFlipped() || clarifyIndex >= workingDeck.length) return;
 
   const card = createCard(workingDeck[clarifyIndex].img);
   const index = clarifyIndex - spreads[currentSpread].length;
-  const offset = Math.min(index, 3);
+  const offset = Math.min(index, 5);
 
-  card.style.left = (leftEdge - 180 - offset * 30) + "px";
+  card.style.left = (leftEdge - 180 - offset*30)+"px";
   card.style.top = "260px";
   card.style.zIndex = ++topZ;
 
@@ -251,7 +279,7 @@ function clarify() {
   clarifyIndex++;
 }
 
-/* ===== FULL DECK ===== */
+// ===== Full deck =====
 const deck = [
   // Major Arcana
   ...[
@@ -260,13 +288,13 @@ const deck = [
     "10_Wheel","11_Justice","12_Hanged_Man","13_Death","14_Temperance",
     "15_Devil","16_Tower","17_Star","18_Moon","19_Sun",
     "20_Judgement","21_World"
-  ].map(n => ({ img:`cards/major/${n}.jpg` })),
+  ].map(n=>({img:`cards/major/${n}.jpg`})),
 
   // Minor Arcana
-  ...Array.from({length:14},(_,i)=>({ img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({length:14},(_,i)=>({ img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({length:14},(_,i)=>({ img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg` })),
-  ...Array.from({length:14},(_,i)=>({ img:`cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg` }))
+  ...Array.from({length:14},(_,i)=>({img:`cards/cups/Cups${String(i+1).padStart(2,"0")}.jpg`})),
+  ...Array.from({length:14},(_,i)=>({img:`cards/swords/Swords${String(i+1).padStart(2,"0")}.jpg`})),
+  ...Array.from({length:14},(_,i)=>({img:`cards/pents/Pents${String(i+1).padStart(2,"0")}.jpg`})),
+  ...Array.from({length:14},(_,i)=>({img:`cards/wands/Wands${String(i+1).padStart(2,"0")}.jpg`}))
 ];
 </script>
 
