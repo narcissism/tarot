@@ -114,12 +114,9 @@ button:hover { background: #444; }
   <div id="meaning-panel">Card meanings will appear here.</div>
 </div>
 
-
 <script>
 const container = document.getElementById("fan-container");
 const meaningPanel = document.getElementById("meaning-panel");
-const shuffleSound = document.getElementById("shuffleSound");
-const flipSound = document.getElementById("flipSound");
 
 let workingDeck = [];
 let currentSpread = null;
@@ -133,7 +130,6 @@ fetch("cardMeanings.json")
   .then(res => res.json())
   .then(data => cardMeanings = data)
   .catch(e => console.error("Error loading card meanings:", e));
-
 
 /* ===== TRUE SHUFFLE ===== */
 function shuffle(arr) {
@@ -175,7 +171,6 @@ function createCard(img, rotate=false) {
 
   card.addEventListener("click", () => {
     if (!card.classList.contains("flipped")) {
-      
       card.classList.add("flipped");
     }
     card.style.zIndex = ++topZ;
@@ -217,7 +212,6 @@ function deal(type) {
   topZ = 100;
 
   workingDeck = shuffle(deck);
-  play(shuffleSound);
 
   leftEdge = Infinity;
   spreads[type].forEach((pos, i) => {
