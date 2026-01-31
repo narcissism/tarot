@@ -175,7 +175,7 @@ function createCard(img, rotate=false) {
 
   card.addEventListener("click", () => {
     if (!card.classList.contains("flipped")) {
-      play(flipSound);
+      
       card.classList.add("flipped");
     }
     card.style.zIndex = ++topZ;
