@@ -241,7 +241,7 @@ function clarify() {
 
   const card = createCard(workingDeck[clarifyIndex].img);
   const index = clarifyIndex - spreads[currentSpread].length;
-  const offset = Math.min(index, 5);
+  const offset = Math.min(index, 3);
 
   card.style.left = (leftEdge - 180 - offset * 30) + "px";
   card.style.top = "260px";
