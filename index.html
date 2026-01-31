@@ -114,8 +114,6 @@ button:hover { background: #444; }
   <div id="meaning-panel">Card meanings will appear here.</div>
 </div>
 
-<audio id="shuffleSound" src="sounds/shuffle.mp3" preload="auto"></audio>
-<audio id="flipSound" src="sounds/flip.mp3" preload="auto"></audio>
 
 <script>
 const container = document.getElementById("fan-container");
@@ -136,18 +134,6 @@ fetch("cardMeanings.json")
   .then(data => cardMeanings = data)
   .catch(e => console.error("Error loading card meanings:", e));
 
-/* ===== AUDIO UNLOCK ===== */
-document.addEventListener("click", () => {
-  shuffleSound.muted = false;
-  flipSound.muted = false;
-  shuffleSound.volume = 0.4;
-  flipSound.volume = 0.4;
-}, { once: true });
-
-function play(sound) {
-  sound.currentTime = 0;
-  sound.play().catch(()=>{});
-}
 
 /* ===== TRUE SHUFFLE ===== */
 function shuffle(arr) {
